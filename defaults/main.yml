@@ -1,0 +1,10 @@
+# installation
+endlessh_build_on_remote: false
+
+# config file
+endlessh_port: 2222
+endlessh_delay: 10000
+endlessh_max_line_length: 32
+endlessh_max_clients: 4096
+endlessh_log_level: 0
+endlessh_bind_family: 0

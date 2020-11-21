@@ -1,30 +1,80 @@
 ---
-- name: Assert we are on archlinux
+- name: Assert we are on linux
   assert:
-      that:
-          - ansible_system is defined
-          - ansible_system == "Linux"
+    that:
+      - ansible_system is defined
+      - ansible_system == "Linux"
 
-- name: Deploy binary
+- name: Deploy Configuration Dir
+  file:
+    state: directory
+    path: /etc/endlessh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy Configuration
+  template:
+    src: config.j2
+    dest: /etc/endlessh/config
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Build binary
+  block:
+    - name: Create temporary build directory
+      tempfile:
+        state: directory
+        suffix: build
+      register: builddir
+
+    - unarchive:
+        src: https://github.com/skeeto/endlessh/releases/download/1.0/endlessh-1.0.tar.xz
+        dest: "{{builddir.path}}"
+        group: root
+        remote_src: yes
+        owner: root
+
+    - name: Make endlessh
+      community.general.make:
+        chdir: "{{builddir.path}}/endlessh-1.0"
+        target: all
+
+    - copy:
+        src: "{{builddir.path}}/endlessh-1.0/endlessh"
+        dest: /usr/local/sbin/endlessh
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+      notify: "restart endlessh"
+  when: endlessh_build_on_remote
+
+- name: Copy prebuilt binary
   copy:
-      src: endlessh
-      dest: /usr/local/sbin/endlessh
-      owner: root
-      group: root
-      mode: "0700"
-  notify: Restart endlessh
+    src: "endlessh-linux-amd64"
+    dest: /usr/local/sbin/endlessh
+    owner: root
+    group: root
+    mode: "0755"  
+  when: not endlessh_build_on_remote
+  notify: "restart endlessh"
+
+- name: Set network capabilities
+  command: "setcap 'cap_net_bind_service=+ep' /usr/local/sbin/endlessh"
 
 - name: Deploy service
   template:
-      src: service.j2
-      dest: /etc/systemd/system/endlessh.service
-      owner: root
-      group: "0644"
-  notify: Restart endlessh
+    src: service.j2
+    dest: /etc/systemd/system/endlessh.service
+    owner: root
+    group: "0644"
+  notify: "restart endlessh"
 
 - name: Start and enable endlessh
   systemd:
-      name: endlessh
-      enabled: true
-      state: started
-      daemon_reload: true
+    name: endlessh
+    enabled: true
+    state: started
+    daemon_reload: true
