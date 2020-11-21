@@ -65,7 +65,7 @@
 
 - name: Copy prebuilt binary
   copy:
-    src: "endlessh-linux-amd64"
+    src: "endlessh-{{ansible_system | lower}}-{{endlessh_arch_map[ansible_architecture|lower]}}"
     dest: /usr/local/sbin/endlessh
     owner: root
     group: root
