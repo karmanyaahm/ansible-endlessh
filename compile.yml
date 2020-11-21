@@ -1,0 +1,29 @@
+- hosts: 127.0.0.1   
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: compile
+      shell: |
+        git clone https://github.com/skeeto/endlessh.git
+        cd endlessh
+
+        docker run --rm dockcross/linux-armv6 > ./dockcross
+        chmod +x ./dockcross
+
+        ./dockcross -i dockcross/linux-armv6 bash -c 'make CC=$CC LDLIBS=-lrt'
+        mv endlessh ../files/endlessh-linux-armv6
+
+        ./dockcross -i dockcross/linux-x86 bash -c 'make CC=$CC'
+        mv endlessh ../files/endlessh-linux-i386
+        
+        make
+        mv endlessh ../files/endlessh-linux-amd64
+
+        rm dockcross
+        cd ..
+        rm -rf ./endlessh/
+
+      register: ps
+
+    - debug: var=ps.stderr_lines
