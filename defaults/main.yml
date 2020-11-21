@@ -1,9 +1,10 @@
 # installation
 endlessh_build_on_remote: false
+endlessh_new_sshd_port: 69 # can be false to not reconfigure sshd
 
 # config file
 endlessh_port: 2222
-endlessh_delay: 10000
+endlessh_delay: 10000 #msec
 endlessh_max_line_length: 32
 endlessh_max_clients: 4096
 endlessh_log_level: 0

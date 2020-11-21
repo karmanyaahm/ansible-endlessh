@@ -1,5 +1,9 @@
 ---
-- name: Restart endlessh
+- name: restart endlessh
   systemd:
       name: endlessh
       state: restarted
+- name: restart sshd
+  systemd:
+    name: sshd.service
+    state: restarted

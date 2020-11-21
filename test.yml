@@ -1,0 +1,7 @@
+- hosts: all
+  become: yes
+  roles:
+    - "../."
+  vars:
+    endlessh_port: 23
+    endlessh_new_sshd_port: false

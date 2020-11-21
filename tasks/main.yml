@@ -1,9 +1,21 @@
 ---
-- name: Assert we are on linux
-  assert:
-    that:
-      - ansible_system is defined
-      - ansible_system == "Linux"
+- name: check port
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: ^Port 22\b
+    state: absent
+    validate: "sshd -f %s -t"
+  when: endlessh_new_sshd_port
+
+- name: check port v2
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "Port {{endlessh_new_sshd_port}}"
+    state: present
+    validate: "sshd -f %s -t"
+  notify: 
+    - restart sshd
+  when: endlessh_new_sshd_port
 
 - name: Deploy Configuration Dir
   file:
